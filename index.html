@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Una Carta Para Ti ❤️</title>
+  <meta name="description"
+    content="Una hermosa carta interactiva animada con explosión de corazones por detrás y música romántica.">
+  <meta name="theme-color" content="#ffe5ec">
+
+  <!-- Google Fonts: Pacifico, Caveat (manuscrita) y Nunito (moderna y limpia) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Canvas de fondo para la explosión y caída de corazones por detrás de la carta -->
+  <canvas id="hearts-canvas"></canvas>
+
+  <!-- Decoración ambiental de fondo -->
+  <div class="ambient-decorations" aria-hidden="true">
+    <span class="ambient-particle ap1">🌸</span>
+    <span class="ambient-particle ap2">✨</span>
+    <span class="ambient-particle ap3">💖</span>
+    <span class="ambient-particle ap4">✨</span>
+    <span class="ambient-particle ap5">🌸</span>
+  </div>
+
+  <!-- Contenedor Principal Adaptable a Cualquier Pantalla -->
+  <main class="main-container">
+
+    <!-- Encabezado -->
+    <header class="header-section">
+      <h1 class="title">Tienes una cartita especial</h1>
+      <p class="subtitle" id="instruction-text">Toca el corazón para abrirla ✨</p>
+    </header>
+
+    <!-- Escena Central: El Sobre y sus Corazones Alrededor -->
+    <section class="letter-scene" aria-label="Carta interactiva">
+      <div class="envelope-wrapper" id="envelope-wrapper">
+
+        <!-- Los 4 corazones doodle idénticos a la imagen de referencia -->
+        <div class="reference-hearts" aria-hidden="true">
+          <div class="ref-heart rh-top-left">
+            <svg viewBox="0 0 40 36">
+              <path class="ref-heart-shape"
+                d="M0 12 A 10 10 0 0 1 20 9 A 10 10 0 0 1 40 12 Q 40 25 20 35 Q 0 25 0 12 z" />
+            </svg>
+          </div>
+          <div class="ref-heart rh-top-right">
+            <svg viewBox="0 0 40 36">
+              <path class="ref-heart-shape"
+                d="M0 12 A 10 10 0 0 1 20 9 A 10 10 0 0 1 40 12 Q 40 25 20 35 Q 0 25 0 12 z" />
+            </svg>
+          </div>
+          <div class="ref-heart rh-mid-left">
+            <svg viewBox="0 0 40 36">
+              <path class="ref-heart-shape"
+                d="M0 12 A 10 10 0 0 1 20 9 A 10 10 0 0 1 40 12 Q 40 25 20 35 Q 0 25 0 12 z" />
+            </svg>
+          </div>
+          <div class="ref-heart rh-mid-right">
+            <svg viewBox="0 0 40 36">
+              <path class="ref-heart-shape"
+                d="M0 12 A 10 10 0 0 1 20 9 A 10 10 0 0 1 40 12 Q 40 25 20 35 Q 0 25 0 12 z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Sombra en la base -->
+        <div class="envelope-ground-shadow"></div>
+
+        <!-- El Sobre Principal -->
+        <div class="envelope" id="envelope">
+
+          <!-- Fondo interior del sobre -->
+          <div class="envelope-back"></div>
+
+          <!-- Solapa superior (que se pliega y abre hacia atrás/arriba) -->
+          <div class="envelope-flap" id="envelope-flap">
+            <div class="flap-triangle"></div>
+          </div>
+
+          <!-- Hoja de Papel (La Carta) -->
+          <article class="letter-paper" id="letter-paper" role="region" aria-label="Mensaje de la carta">
+            <div class="paper-lines"></div>
+
+            <div class="letter-header">
+              <span class="letter-date" id="display-date">11 de Octubre</span>
+              <span class="letter-stamp" aria-hidden="true">💌</span>
+            </div>
+
+            <h2 class="letter-salutation" id="display-recipient">Para ti, con todo mi amor</h2>
+
+            <div class="letter-body" id="display-message">
+              <p>¡Feliz cumpleaños!</p>
+              <p>Quería recordarte lo increíble e importante que eres para mí.</p>
+              <p>Cada momento contigo es un regalo que alegra mis días. Gracias por iluminar mi mundo con tu sonrisa y
+                hacerme tan feliz.</p>
+            </div>
+
+            <div class="letter-footer">
+              <span class="closing-phrase">Siempre contigo,</span>
+              <span class="letter-signature" id="display-sender">De mí para ti 💕</span>
+            </div>
+
+            <button class="expand-preview-btn" id="expand-preview-btn" type="button"
+              aria-label="Abrir en pantalla completa">
+              <span>Leer en grande 📖</span>
+            </button>
+          </article>
+
+          <!-- Bolsillo frontal del sobre (Solapas izquierda, derecha y abajo) -->
+          <div class="envelope-pocket">
+            <div class="pocket-side-left"></div>
+            <div class="pocket-side-right"></div>
+            <div class="pocket-bottom-fold"></div>
+          </div>
+
+          <!-- Botón de Sello: Corazón Central para presionar -->
+          <button class="heart-seal-btn" id="heart-seal" aria-label="Abrir carta tocando el corazón" type="button">
+            <span class="heart-pulse-glow"></span>
+            <svg class="heart-seal-svg" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+              <path class="heart-seal-path"
+                d="M0 30 A 24 24 0 0 1 50 22 A 24 24 0 0 1 100 30 Q 100 62 50 88 Q 0 62 0 30 z" />
+              <path class="heart-seal-highlight" d="M22 24 A 12 12 0 0 1 44 22 Q 34 32 22 24 z" />
+            </svg>
+            <span class="heart-badge-hint" id="heart-tooltip">¡Tócame! ❤️</span>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Herramientas Inferior -->
+    <footer class="bottom-bar">
+      <button class="tool-btn" id="reset-btn" type="button" aria-label="Abrir o cerrar la carta">
+        <span class="tool-icon">💌</span>
+        <span class="tool-label">Cerrar carta</span>
+      </button>
+
+      <button class="tool-btn" id="customize-btn" type="button" aria-label="Personalizar el texto de la carta">
+        <span class="tool-icon">✍️</span>
+        <span class="tool-label">Personalizar</span>
+      </button>
+
+      <button class="tool-btn" id="sound-btn" type="button" aria-label="Activar o silenciar sonidos">
+        <span class="tool-icon" id="sound-icon">🔊</span>
+        <span class="tool-label">Efectos</span>
+      </button>
+
+      <button class="tool-btn" id="music-btn" type="button" aria-label="Reproducir melodía romántica">
+        <span class="tool-icon" id="music-icon">🎵</span>
+        <span class="tool-label">Melodía</span>
+      </button>
+    </footer>
+
+  </main>
+
+  <!-- Modal de Lectura Cómoda en Pantalla Completa (Ideal para smartphones) -->
+  <div class="modal-layer" id="letter-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-dim" id="modal-backdrop"></div>
+    <div class="modal-sheet">
+      <button class="modal-close-icon" id="modal-close-btn" aria-label="Cerrar vista">&times;</button>
+      <div class="modal-sheet-content">
+        <div class="sheet-stamp">💌</div>
+        <p class="sheet-date" id="modal-display-date">11 de Octubre</p>
+        <h2 class="sheet-salutation" id="modal-display-recipient">Para ti, con todo mi amor</h2>
+        <div class="sheet-body" id="modal-display-message">
+          <p>¡Feliz cumpleaños!</p>
+          <p>Quería recordarte lo increíble e importante que eres para mí.</p>
+          <p>Cada momento contigo es un regalo que alegra mis días. Gracias por iluminar mi mundo con tu sonrisa y
+            hacerme tan feliz.</p>
+        </div>
+        <div class="sheet-footer">
+          <p class="sheet-closing">Siempre contigo,</p>
+          <p class="sheet-signature" id="modal-display-sender">De mí para ti 💕</p>
+        </div>
+        <button class="primary-confirm-btn" id="modal-done-btn">Volver al sobre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar y Personalizar el Mensaje -->
+  <div class="modal-layer" id="edit-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-dim" id="edit-modal-backdrop"></div>
+    <div class="modal-sheet edit-sheet">
+      <button class="modal-close-icon" id="edit-modal-close" aria-label="Cerrar edición">&times;</button>
+
+      <div class="edit-header">
+        <h2 class="edit-title">✍️ Escribe tu Carta</h2>
+        <p class="edit-subtitle">Personaliza tu dedicatoria para esa persona especial</p>
+      </div>
+
+      <form id="edit-form" class="edit-form-inner">
+        <div class="field-box">
+          <label for="input-recipient">Para quién es:</label>
+          <input type="text" id="input-recipient" maxlength="45"
+            placeholder="Ej: Mi vida, Para mi princesa, Amor mío..." required>
+        </div>
+
+        <div class="field-box">
+          <label for="input-message">Tu mensaje de amor o cariño:</label>
+          <textarea id="input-message" rows="5" maxlength="500" placeholder="Escribe aquí desde tu corazón..."
+            required></textarea>
+        </div>
+
+        <div class="field-box">
+          <label for="input-sender">Tu firma o despedida:</label>
+          <input type="text" id="input-sender" maxlength="35" placeholder="Ej: Tu novio que te ama, Siempre tuyo/a..."
+            required>
+        </div>
+
+        <div class="presets-section">
+          <span class="presets-title">Inspiración rápida:</span>
+          <div class="presets-chips">
+            <button type="button" class="preset-chip" data-preset="amor">Amor 💕</button>
+            <button type="button" class="preset-chip" data-preset="aniversario">Aniversario 🥂</button>
+            <button type="button" class="preset-chip" data-preset="amistad">Amistad 🌸</button>
+            <button type="button" class="preset-chip" data-preset="motivacion">Ánimo ✨</button>
+          </div>
+        </div>
+
+        <button type="submit" class="primary-confirm-btn">Guardar y Enviar con Amor ❤️</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
