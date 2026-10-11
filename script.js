@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editModal.setAttribute('aria-hidden', 'true');
   }
 
-  customizeBtn.addEventListener('click', openEditModal);
+  if (customizeBtn) customizeBtn.addEventListener('click', openEditModal);
   editModalClose.addEventListener('click', closeEditModal);
   editModalBackdrop.addEventListener('click', closeEditModal);
 
