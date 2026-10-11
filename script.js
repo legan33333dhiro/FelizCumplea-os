@@ -1,6 +1,6 @@
 /* ==========================================================================
    CARTA INTERACTIVA CON EXPLOSIÓN TRASERA Y LLUVIA DE CORAZONES
-   Diseño responsivo para móviles y ordenadores
+   Diseño responsivo y amigable para teléfonos móviles
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,11 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const letterPaper = document.getElementById('letter-paper');
   const instructionText = document.getElementById('instruction-text');
   const expandPreviewBtn = document.getElementById('expand-preview-btn');
-  const referenceHearts = document.querySelector('.reference-hearts');
 
   // Botones de acción
   const resetBtn = document.getElementById('reset-btn');
-  const customizeBtn = document.getElementById('customize-btn');
+  const customizeBtn = document.getElementById('customize-btn'); // Opcional si existe
   const soundBtn = document.getElementById('sound-btn');
   const soundIcon = document.getElementById('sound-icon');
   const musicBtn = document.getElementById('music-btn');
@@ -25,14 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalBackdrop = document.getElementById('modal-backdrop');
   const modalCloseBtn = document.getElementById('modal-close-btn');
   const modalDoneBtn = document.getElementById('modal-done-btn');
-
-  const editModal = document.getElementById('edit-modal');
-  const editModalBackdrop = document.getElementById('edit-modal-backdrop');
-  const editModalClose = document.getElementById('edit-modal-close');
-  const editForm = document.getElementById('edit-form');
-  const inputRecipient = document.getElementById('input-recipient');
-  const inputMessage = document.getElementById('input-message');
-  const inputSender = document.getElementById('input-sender');
 
   // Textos de la carta
   const displayRecipient = document.getElementById('display-recipient');
@@ -45,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalDisplaySender = document.getElementById('modal-display-sender');
   const modalDisplayDate = document.getElementById('modal-display-date');
 
-  // Canvas para la explosión por detrás
+  // Canvas para la lluvia y explosión de corazones
   const canvas = document.getElementById('hearts-canvas');
   const ctx = canvas.getContext('2d');
 
@@ -59,10 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let musicInterval = null;
   let ambientRainInterval = null;
 
-  // Fecha de la carta
-  const letterDate = '11 de Octubre';
-  displayDate.textContent = letterDate;
-  modalDisplayDate.textContent = letterDate;
+  // Fecha fija: 11 de Octubre
+  const fixedDate = '11 de Octubre';
+  if (displayDate) displayDate.textContent = fixedDate;
+  if (modalDisplayDate) modalDisplayDate.textContent = fixedDate;
 
   // Ajustar tamaño del Canvas en alta resolución
   function resizeCanvas() {
@@ -80,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
      SISTEMA DE PARTÍCULAS: Explosión y Caída de Corazones (Doodle Style)
      ========================================================================== */
 
-  // Función para dibujar un corazón con trazo tipo cómic (idéntico a la referencia)
+  // Función para dibujar un corazón con trazo tipo cómic
   function drawDoodleHeart(ctx, x, y, size, color, strokeColor, angle) {
     ctx.save();
     ctx.translate(x, y);
@@ -96,15 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillStyle = color;
     ctx.fill();
 
-    ctx.lineWidth = 2.6;
+    ctx.lineWidth = 2.5;
     ctx.strokeStyle = strokeColor;
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // Pequeño reflejo de brillo tierno
+    // Pequeño reflejo tierno
     ctx.beginPath();
     ctx.ellipse(-7, -4, 4, 2, Math.PI / 4, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.fill();
 
     ctx.restore();
@@ -116,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.x = startX;
       this.y = startY;
 
-      // Paleta vibrante y tierna
+      // Paleta tierna de colores
       const colors = ['#ff4d6d', '#ff758f', '#ff8fa3', '#ffb3c1', '#c9184a', '#ff9ebb', '#e63946'];
       this.color = colors[Math.floor(Math.random() * colors.length)];
       this.strokeColor = '#451322';
@@ -124,12 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
       this.size = Math.random() * 18 + 16; // 16px a 34px
 
       if (isExplosion) {
-        // Explosión radial que sale por detrás de la carta
-        // Principalmente proyectada hacia arriba, izquierda y derecha
+        // Explosión radial proyectada principalmente hacia arriba y a los lados
         const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 1.35);
-        const speed = Math.random() * 14 + 7;
+        const speed = Math.random() * 13 + 6;
         this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed - Math.random() * 5; // Empuje extra hacia arriba
+        this.vy = Math.sin(angle) * speed - Math.random() * 4;
         this.gravity = 0.22 + Math.random() * 0.12;
       } else {
         // Lluvia ambiental suave
@@ -161,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       this.rotation += this.vRot;
 
-      // Desvanecimiento suave conforme cae al fondo
       if (this.y > window.innerHeight * 0.68) {
         this.opacity -= this.fadeRate * 3.5;
       }
@@ -176,13 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Detonar la explosión de corazones desde detrás del sobre
+  // Generar ráfaga de corazones en coordenadas (x, y)
+  function spawnHeartBurst(x, y, count = 16) {
+    for (let i = 0; i < count; i++) {
+      particles.push(new HeartParticle(x, y, true));
+    }
+    if (!animationFrameId) {
+      animateParticles();
+    }
+  }
+
+  // Detonar la gran explosión de corazones desde detrás del sobre
   function triggerHeartExplosion() {
     const rect = envelope.getBoundingClientRect();
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height * 0.45;
 
-    // Crear entre 65 y 90 corazones
     const count = window.innerWidth < 480 ? 65 : 90;
     for (let i = 0; i < count; i++) {
       const offsetX = (Math.random() - 0.5) * (rect.width * 0.65);
@@ -195,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Generar corazones ambientales periódicos
+  // Lluvia ambiental suave
   function spawnAmbientHeart() {
     if (!isOpen) return;
     const x = Math.random() * window.innerWidth;
@@ -203,9 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
     particles.push(new HeartParticle(x, y, false));
   }
 
-  // Ciclo de animación
+  // Ciclo de animación del Canvas
   function animateParticles() {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const isAlive = particles[i].update();
@@ -224,9 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     AUDIO Y MÚSICA SINTETIZADA CON WEB AUDIO API (Cero dependencias externas)
+     AUDIO Y MÚSICA SINTETIZADA CON WEB AUDIO API
      ========================================================================== */
-  function initAudio() {
+  function getAudioContext() {
     if (!audioCtx) {
       const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
       if (AudioCtxClass) {
@@ -236,116 +237,89 @@ document.addEventListener('DOMContentLoaded', () => {
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
+    return audioCtx;
   }
 
-  // Sonido de apertura: arpegio mágico celestial
-  function playOpenSound() {
-    if (!soundEnabled) return;
-    initAudio();
-    if (!audioCtx) return;
+  // Reproducir una nota sintetizada limpia
+  function playNote(freq, startTime, duration, volume = 0.22, type = 'sine') {
+    const ctx = getAudioContext();
+    if (!ctx || !soundEnabled) return;
 
-    const now = audioCtx.currentTime;
-    const chord = [523.25, 659.25, 783.99, 987.77, 1046.50]; // Do, Mi, Sol, Si, Do agudo
+    try {
+      const now = Math.max(ctx.currentTime, startTime);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-    chord.forEach((freq, idx) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-
-      gain.gain.setValueAtTime(0, now + idx * 0.08);
-      gain.gain.linearRampToValueAtTime(0.18, now + idx * 0.08 + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.9);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(volume, now + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
 
-      osc.start(now + idx * 0.08);
-      osc.stop(now + idx * 0.08 + 0.95);
+      osc.start(now);
+      osc.stop(now + duration + 0.05);
+    } catch (e) {
+      console.warn('Audio play error:', e);
+    }
+  }
+
+  // Sonido de apertura / Efecto mágico de campanas y arpa
+  function playOpenSound() {
+    const ctx = getAudioContext();
+    if (!ctx || !soundEnabled) return;
+
+    const now = ctx.currentTime;
+    // Arpegio mágico celestial pentatónico
+    const notes = [523.25, 659.25, 783.99, 987.77, 1046.50, 1318.51];
+    notes.forEach((freq, idx) => {
+      playNote(freq, now + idx * 0.075, 0.85, 0.22, 'triangle');
     });
 
-    // Pop alegre
-    const popOsc = audioCtx.createOscillator();
-    const popGain = audioCtx.createGain();
-    popOsc.type = 'triangle';
-    popOsc.frequency.setValueAtTime(320, now);
-    popOsc.frequency.exponentialRampToValueAtTime(140, now + 0.15);
-
-    popGain.gain.setValueAtTime(0.2, now);
-    popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-    popOsc.connect(popGain);
-    popGain.connect(audioCtx.destination);
-    popOsc.start(now);
-    popOsc.stop(now + 0.16);
+    // Pequeño pop dulce
+    playNote(320, now, 0.15, 0.2, 'sine');
   }
 
-  // Sonido de cierre
+  // Sonido suave al cerrar
   function playCloseSound() {
-    if (!soundEnabled) return;
-    initAudio();
-    if (!audioCtx) return;
-
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.exponentialRampToValueAtTime(260, now + 0.25);
-
-    gain.gain.setValueAtTime(0.14, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.26);
+    const ctx = getAudioContext();
+    if (!ctx || !soundEnabled) return;
+    playNote(440, ctx.currentTime, 0.2, 0.16, 'sine');
   }
 
-  // Melodía romántica sintetizada (caja de música)
+  // Melodía romántica en bucle (caja musical)
   const melodyNotes = [
-    { f: 523.25, d: 0.5 }, { f: 587.33, d: 0.5 }, { f: 659.25, d: 0.8 },
-    { f: 587.33, d: 0.5 }, { f: 523.25, d: 0.5 }, { f: 659.25, d: 0.8 },
-    { f: 783.99, d: 0.8 }, { f: 659.25, d: 0.8 }, { f: 523.25, d: 1.2 }
+    { f: 523.25, d: 0.45 }, { f: 659.25, d: 0.45 }, { f: 783.99, d: 0.6 },
+    { f: 659.25, d: 0.45 }, { f: 880.00, d: 0.6 },  { f: 783.99, d: 0.5 },
+    { f: 659.25, d: 0.5 },  { f: 523.25, d: 0.8 }
   ];
   let melodyStep = 0;
 
   function playMelodyNote() {
-    if (!musicPlaying || !audioCtx) return;
-    const note = melodyNotes[melodyStep % melodyNotes.length];
+    if (!musicPlaying) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const item = melodyNotes[melodyStep % melodyNotes.length];
     melodyStep++;
-
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(note.f, now);
-
-    gain.gain.setValueAtTime(0.07, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + note.d * 0.9);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + note.d);
+    playNote(item.f, ctx.currentTime, item.d, 0.24, 'sine');
   }
 
   function toggleMusic() {
-    initAudio();
+    getAudioContext();
     musicPlaying = !musicPlaying;
 
     if (musicPlaying) {
-      musicBtn.classList.add('active');
-      musicIcon.textContent = '🎶';
+      if (musicBtn) musicBtn.classList.add('active');
+      if (musicIcon) musicIcon.textContent = '🎶';
       musicInterval = setInterval(playMelodyNote, 420);
       playMelodyNote();
     } else {
-      musicBtn.classList.remove('active');
-      musicIcon.textContent = '🎵';
+      if (musicBtn) musicBtn.classList.remove('active');
+      if (musicIcon) musicIcon.textContent = '🎵';
       clearInterval(musicInterval);
     }
   }
@@ -358,21 +332,25 @@ document.addEventListener('DOMContentLoaded', () => {
     isOpen = true;
 
     envelope.classList.add('is-open');
-    instructionText.textContent = '¡Carta abierta con mucho amor! ✨';
+    if (instructionText) instructionText.textContent = '¡Carta abierta con mucho amor! ✨';
     
-    const resetLabel = resetBtn.querySelector('.tool-label');
-    if (resetLabel) resetLabel.textContent = 'Cerrar carta';
+    if (resetBtn) {
+      const resetLabel = resetBtn.querySelector('.tool-label');
+      if (resetLabel) resetLabel.textContent = 'Cerrar carta';
+    }
 
-    // Reproducir sonido mágico
+    // Sonido mágico
     playOpenSound();
 
-    // Sincronizar la explosión de corazones por detrás justo cuando la solapa se levanta
+    // Ráfaga festiva de corazones por detrás
     setTimeout(() => {
       triggerHeartExplosion();
     }, 180);
 
-    // Lluvia ambiental suave mientras esté abierta
-    ambientRainInterval = setInterval(spawnAmbientHeart, 850);
+    // Lluvia ambiental periódica
+    if (!ambientRainInterval) {
+      ambientRainInterval = setInterval(spawnAmbientHeart, 850);
+    }
   }
 
   function closeEnvelope() {
@@ -380,10 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
     isOpen = false;
 
     envelope.classList.remove('is-open');
-    instructionText.textContent = 'Toca el corazón para abrirla ✨';
+    if (instructionText) instructionText.textContent = 'Toca el corazón para abrirla ✨';
     
-    const resetLabel = resetBtn.querySelector('.tool-label');
-    if (resetLabel) resetLabel.textContent = 'Abrir carta';
+    if (resetBtn) {
+      const resetLabel = resetBtn.querySelector('.tool-label');
+      if (resetLabel) resetLabel.textContent = 'Abrir carta';
+    }
 
     playCloseSound();
 
@@ -402,203 +382,121 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Tocar el corazón central
-  heartSeal.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openEnvelope();
-  });
+  if (heartSeal) {
+    heartSeal.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEnvelope();
+    });
+  }
 
   // Tocar el sobre cuando está cerrado
-  envelope.addEventListener('click', (e) => {
-    if (!isOpen) {
-      openEnvelope();
-    }
-  });
-
-  // Botón inferior para cerrar/abrir
-  resetBtn.addEventListener('click', () => {
-    toggleEnvelope();
-  });
-
-  // Si la carta está abierta y se toca el papel, ampliar para leer
-  letterPaper.addEventListener('click', (e) => {
-    if (isOpen) {
-      e.stopPropagation();
-      openLetterModal();
-    }
-  });
-
-  expandPreviewBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openLetterModal();
-  });
-
-  /* ==========================================================================
-     MODAL DE LECTURA COMPLETA (Excelente para lectura en celulares)
-     ========================================================================== */
-  function openLetterModal() {
-    letterModal.classList.add('is-active');
-    letterModal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeLetterModal() {
-    letterModal.classList.remove('is-active');
-    letterModal.setAttribute('aria-hidden', 'true');
-  }
-
-  modalCloseBtn.addEventListener('click', closeLetterModal);
-  modalDoneBtn.addEventListener('click', closeLetterModal);
-  modalBackdrop.addEventListener('click', closeLetterModal);
-
-  /* ==========================================================================
-     PERSONALIZACIÓN DEL MENSAJE (Persistencia con localStorage)
-     ========================================================================== */
-  const STORAGE_KEY = 'cute_heart_letter_data';
-
-  function formatParagraphs(text) {
-    return text
-      .split('\n')
-      .filter(l => l.trim().length > 0)
-      .map(line => `<p>${escapeHtml(line)}</p>`)
-      .join('');
-  }
-
-  function escapeHtml(str) {
-    const p = document.createElement('p');
-    p.textContent = str;
-    return p.innerHTML;
-  }
-
-  function loadSavedMessage() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.recipient) {
-          displayRecipient.textContent = data.recipient;
-          modalDisplayRecipient.textContent = data.recipient;
-        }
-        if (data.message) {
-          displayMessage.innerHTML = formatParagraphs(data.message);
-          modalDisplayMessage.innerHTML = formatParagraphs(data.message);
-        }
-        if (data.sender) {
-          displaySender.textContent = data.sender;
-          modalDisplaySender.textContent = data.sender;
-        }
-      }
-    } catch (e) {
-      console.warn('No se pudo cargar localStorage', e);
-    }
-  }
-
-  function openEditModal() {
-    inputRecipient.value = displayRecipient.textContent;
-    const paras = Array.from(displayMessage.querySelectorAll('p')).map(p => p.textContent);
-    inputMessage.value = paras.join('\n');
-    inputSender.value = displaySender.textContent;
-
-    editModal.classList.add('is-active');
-    editModal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeEditModal() {
-    editModal.classList.remove('is-active');
-    editModal.setAttribute('aria-hidden', 'true');
-  }
-
-  if (customizeBtn) customizeBtn.addEventListener('click', openEditModal);
-  editModalClose.addEventListener('click', closeEditModal);
-  editModalBackdrop.addEventListener('click', closeEditModal);
-
-  editForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const recipient = inputRecipient.value.trim() || 'Para ti';
-    const message = inputMessage.value.trim() || 'Te quiero mucho.';
-    const sender = inputSender.value.trim() || 'De mí para ti 💕';
-
-    // Actualizar pantalla
-    displayRecipient.textContent = recipient;
-    modalDisplayRecipient.textContent = recipient;
-
-    displayMessage.innerHTML = formatParagraphs(message);
-    modalDisplayMessage.innerHTML = formatParagraphs(message);
-
-    displaySender.textContent = sender;
-    modalDisplaySender.textContent = sender;
-
-    // Guardar
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ recipient, message, sender }));
-    } catch (err) {
-      console.warn('Error guardando en localStorage', err);
-    }
-
-    closeEditModal();
-
-    // Ráfaga festiva de corazones al guardar la nueva carta
-    triggerHeartExplosion();
-  });
-
-  // Presets / Plantillas rápidas
-  const presets = {
-    amor: {
-      recipient: 'Mi amor ❤️',
-      message: 'Quería recordarte lo increíble e importante que eres para mí.\n\nCada momento contigo es un regalo que alegra mis días. Gracias por iluminar mi mundo con tu sonrisa y hacerme tan feliz.',
-      sender: 'Siempre tuyo/a 💕'
-    },
-    aniversario: {
-      recipient: 'Feliz Aniversario 🥂',
-      message: 'Gracias por cada risa, cada abrazo y cada recuerdo compartido.\n\nEstar a tu lado es la aventura más hermosa de mi vida. ¡Por muchísimos momentos más juntos!',
-      sender: 'Con todo mi amor 💖'
-    },
-    amistad: {
-      recipient: 'Para mi persona favorita 🌸',
-      message: 'Solo quería darte las gracias por estar siempre presente.\n\nTu amistad vale oro y tenerte en mi vida es una verdadera bendición. ¡Nunca dejes de brillar!',
-      sender: 'Tu amigo/a incondicional ✨'
-    },
-    motivacion: {
-      recipient: 'Una nota para ti ✨',
-      message: 'Recuerda que eres mucho más fuerte y capaz de lo que imaginas.\n\nNo dejes que nada apague tu luz ni te quite la sonrisa. ¡Hoy será un gran día y estoy muy orgulloso/a de ti!',
-      sender: 'Un abrazo enorme 🤗'
-    }
-  };
-
-  document.querySelectorAll('.preset-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const p = presets[chip.dataset.preset];
-      if (p) {
-        inputRecipient.value = p.recipient;
-        inputMessage.value = p.message;
-        inputSender.value = p.sender;
+  if (envelope) {
+    envelope.addEventListener('click', () => {
+      if (!isOpen) {
+        openEnvelope();
       }
     });
-  });
+  }
 
-  // Controles de sonido y música
-  soundBtn.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
-    soundBtn.classList.toggle('active', soundEnabled);
-  });
+  // Botón para cerrar / abrir
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      toggleEnvelope();
+    });
+  }
 
-  musicBtn.addEventListener('click', toggleMusic);
+  // Si la carta está abierta y se toca el papel, ampliar para leer
+  if (letterPaper) {
+    letterPaper.addEventListener('click', (e) => {
+      if (isOpen) {
+        e.stopPropagation();
+        openLetterModal();
+      }
+    });
+  }
 
-  // Efecto extra: tocar cualquier parte de la pantalla genera una mini ráfaga de corazones
+  if (expandPreviewBtn) {
+    expandPreviewBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLetterModal();
+    });
+  }
+
+  /* ==========================================================================
+     BOTONES DE EFECTOS Y MELODÍA
+     ========================================================================== */
+  
+  // Botón de Efectos: reproduce el sonido mágico y lanza corazones
+  if (soundBtn) {
+    soundBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      getAudioContext();
+
+      // Asegurar que el sonido esté activo
+      soundEnabled = true;
+      if (soundIcon) soundIcon.textContent = '🔊';
+      soundBtn.classList.add('active');
+
+      // Reproducir sonido festivo
+      playOpenSound();
+
+      // Lanzar corazones desde el botón
+      const rect = soundBtn.getBoundingClientRect();
+      spawnHeartBurst(rect.left + rect.width / 2, rect.top, 14);
+
+      setTimeout(() => {
+        soundBtn.classList.remove('active');
+      }, 600);
+    });
+  }
+
+  // Botón de Melodía: inicia/detiene la música romántica
+  if (musicBtn) {
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMusic();
+
+      if (musicPlaying) {
+        const rect = musicBtn.getBoundingClientRect();
+        spawnHeartBurst(rect.left + rect.width / 2, rect.top, 14);
+      }
+    });
+  }
+
+  /* ==========================================================================
+     INTERACCIÓN TÁCTIL: TOCAR LA PANTALLA CREA CORAZONES
+     ========================================================================== */
   window.addEventListener('pointerdown', (e) => {
+    // Si tocan un botón de la barra o dentro de un modal, no generar corazones extra
     if (e.target.closest('button') || e.target.closest('.modal-sheet') || e.target.closest('input') || e.target.closest('textarea')) {
       return;
     }
-    if (isOpen) {
-      for (let i = 0; i < 14; i++) {
-        particles.push(new HeartParticle(e.clientX, e.clientY, true));
-      }
-      if (!animationFrameId) {
-        animateParticles();
-      }
-    }
+
+    // Inicializar audio con la interacción del usuario
+    getAudioContext();
+
+    // Ráfaga de corazones exactamente donde toque el usuario
+    spawnHeartBurst(e.clientX, e.clientY, 12);
   });
 
-  // Cargar si existía mensaje personalizado previo
-  loadSavedMessage();
+  /* ==========================================================================
+     MODAL DE LECTURA COMPLETA
+     ========================================================================== */
+  function openLetterModal() {
+    if (letterModal) {
+      letterModal.classList.add('is-active');
+      letterModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeLetterModal() {
+    if (letterModal) {
+      letterModal.classList.remove('is-active');
+      letterModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeLetterModal);
+  if (modalDoneBtn) modalDoneBtn.addEventListener('click', closeLetterModal);
+  if (modalBackdrop) modalBackdrop.addEventListener('click', closeLetterModal);
 });
